@@ -1,0 +1,639 @@
+import React, { useState } from 'react';
+
+const CosmicEggFlat = () => {
+  const [activeChakra, setActiveChakra] = useState(null);
+
+  const chakras = [
+    {
+      id: 'crown',
+      name: 'Crown',
+      sanskrit: 'Sahasrara',
+      domain: 'Meaning · Unity · Spirituality',
+      color: '#7B2D8E',
+      colorLight: '#9945aa',
+      exile: 'Cosmic Orphan',
+      manager: 'True Believer',
+      firefighter: 'Spiritual Bypasser',
+      neural: 'Thalamo-cortical Broadcasting',
+      chemistry: 'Global gamma ↓ Network synchrony ↓',
+      integration: 'Gamma synchrony, frontoparietal coherence',
+      ventral: 'Connection to the larger. Trust in life.',
+      selfSpark: 'Meaning',
+      band: 'upper'
+    },
+    {
+      id: 'third_eye',
+      name: 'Third Eye',
+      sanskrit: 'Ajna',
+      domain: 'Intuition · Insight · Perception',
+      color: '#483D8B',
+      colorLight: '#6050b0',
+      exile: 'Gaslit Child',
+      manager: 'The Intellectual',
+      firefighter: 'Fantasist',
+      neural: 'Salience / DMN Coupling',
+      chemistry: 'Glutamate/GABA imbalance',
+      integration: 'Flexible network switching, uncertainty tolerance',
+      ventral: 'Open awareness, intuitive seeing',
+      selfSpark: 'Clarity',
+      band: 'upper'
+    },
+    {
+      id: 'throat',
+      name: 'Throat',
+      sanskrit: 'Vishuddha',
+      domain: 'Expression · Truth · Authenticity',
+      color: '#2060A0',
+      colorLight: '#3080d0',
+      exile: 'Silenced Child',
+      manager: 'The Diplomat',
+      firefighter: 'Sarcastic Part',
+      neural: 'Frontotemporal Network',
+      chemistry: 'GABAergic control ↑',
+      integration: 'Insula-ACC-IFG coupling, safe voice',
+      ventral: 'Resonant expression, authentic speech',
+      selfSpark: 'Truth',
+      band: 'middle'
+    },
+    {
+      id: 'heart',
+      name: 'Heart',
+      sanskrit: 'Anahata',
+      domain: 'Love · Connection · Compassion',
+      color: '#2E8B2E',
+      colorLight: '#3cb043',
+      exile: 'Heartbroken Child',
+      manager: 'The Caretaker',
+      firefighter: 'Jealous Part',
+      neural: 'Ventral Vagal Complex',
+      chemistry: 'Oxytocin ↓ Vagal tone ↓',
+      integration: 'RSA-indexed synchrony, boundaried compassion',
+      ventral: 'Open-hearted, secure attachment',
+      selfSpark: 'Connection',
+      band: 'middle'
+    },
+    {
+      id: 'solar',
+      name: 'Solar Plexus',
+      sanskrit: 'Manipura',
+      domain: 'Power · Agency · Self-Worth',
+      color: '#DAA520',
+      colorLight: '#f4c430',
+      exile: 'Worthless Child',
+      manager: 'The Achiever',
+      firefighter: 'Arrogant Part',
+      neural: 'mPFC–Striatal Circuit',
+      chemistry: 'Dopamine ↓ Serotonin ↓',
+      integration: 'Coherent agency, right-sized motivation',
+      ventral: 'Confident, centered. Power-with.',
+      selfSpark: 'Sovereignty',
+      band: 'lower'
+    },
+    {
+      id: 'sacral',
+      name: 'Sacral',
+      sanskrit: 'Svadhisthana',
+      domain: 'Emotions · Pleasure · Intimacy',
+      color: '#CC4400',
+      colorLight: '#e85a15',
+      exile: 'Shamed Child',
+      manager: 'Perfectionist',
+      firefighter: 'Binger',
+      neural: 'Limbic–Midbrain Loop',
+      chemistry: 'Dopamine ↓ Oxytocin ↓',
+      integration: 'Affective resonance, bonding without compulsion',
+      ventral: 'Fluid emotion, joyful embodiment',
+      selfSpark: 'Pleasure',
+      band: 'lower'
+    },
+    {
+      id: 'root',
+      name: 'Root',
+      sanskrit: 'Muladhara',
+      domain: 'Survival · Safety · Belonging',
+      color: '#8B0000',
+      colorLight: '#a82020',
+      exile: 'Forsaken Child',
+      manager: 'Obsessive Planner',
+      firefighter: 'Rager',
+      neural: 'Brainstem / HPA Axis',
+      chemistry: 'Cortisol ↑ Norepinephrine ↑',
+      integration: 'vmHRV ↑, embodied safety',
+      ventral: 'Grounded presence, felt belonging',
+      selfSpark: 'Safety',
+      band: 'lower'
+    }
+  ];
+
+  const activeData = chakras.find(c => c.id === activeChakra);
+
+  // Egg dimensions
+  const eggW = 300;
+  const eggH = 420;
+  const cx = 200;
+  const cy = 240;
+  const rx = eggW / 2;
+  const ry = eggH / 2;
+
+  // Compute band boundaries — 7 equal vertical slices of the egg
+  // Crown at top, Root at bottom
+  const bandCount = 7;
+  const bands = chakras.map((chakra, i) => {
+    const yTop = cy - ry + (i / bandCount) * eggH;
+    const yBot = cy - ry + ((i + 1) / bandCount) * eggH;
+    const yMid = (yTop + yBot) / 2;
+
+    // Egg edge at a given y: ellipse equation x = rx * sqrt(1 - ((y-cy)/ry)^2)
+    // But we want an egg, not a perfect ellipse — slightly narrower at crown (top)
+    const eggRadius = (y) => {
+      const t = (y - cy) / ry; // -1 at top, +1 at bottom
+      // Egg factor: narrower at top (t=-1), wider at bottom (t=+1)
+      const eggFactor = 1 - 0.15 * t * t + 0.08 * t;
+      const base = Math.sqrt(Math.max(0, 1 - t * t));
+      return rx * base * eggFactor;
+    };
+
+    const rTop = eggRadius(yTop);
+    const rBot = eggRadius(yBot);
+    const rMid = eggRadius(yMid);
+
+    return { ...chakra, yTop, yBot, yMid, rTop, rBot, rMid, index: i };
+  });
+
+  // Build the egg outline path for clipping
+  const eggOutlinePoints = [];
+  for (let i = 0; i <= 100; i++) {
+    const t = -1 + (2 * i) / 100;
+    const y = cy + t * ry;
+    const eggFactor = 1 - 0.15 * t * t + 0.08 * t;
+    const xOff = rx * Math.sqrt(Math.max(0, 1 - t * t)) * eggFactor;
+    eggOutlinePoints.push({ x: cx + xOff, y });
+  }
+  for (let i = 100; i >= 0; i--) {
+    const t = -1 + (2 * i) / 100;
+    const y = cy + t * ry;
+    const eggFactor = 1 - 0.15 * t * t + 0.08 * t;
+    const xOff = rx * Math.sqrt(Math.max(0, 1 - t * t)) * eggFactor;
+    eggOutlinePoints.push({ x: cx - xOff, y });
+  }
+  const eggPath = eggOutlinePoints.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ') + ' Z';
+
+  const bandColors = {
+    lower: { bg: '#1a1512', border: '#a87030', text: '#a89060', label: 'LOWER BAND — Interoceptive Calibration' },
+    middle: { bg: '#121a15', border: '#308a50', text: '#60a870', label: 'MIDDLE BAND — Social-Emotional Regulation' },
+    upper: { bg: '#15121a', border: '#7050a0', text: '#8060a8', label: 'UPPER BAND — Metacognitive Integration' }
+  };
+
+  return (
+    <div style={{
+      minHeight: '100vh',
+      background: 'radial-gradient(ellipse at center, #0f0f1a 0%, #050508 100%)',
+      padding: '1.5rem 1rem',
+      fontFamily: '"Cormorant Garamond", Georgia, serif',
+      color: '#e8e4d9',
+      overflow: 'hidden',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center'
+    }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
+        
+        @keyframes pulse {
+          0%, 100% { opacity: 0.5; }
+          50% { opacity: 0.85; }
+        }
+        @keyframes selfPulse {
+          0%, 100% { r: 6; opacity: 0.8; }
+          50% { r: 8; opacity: 1; }
+        }
+      `}</style>
+
+      <header style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
+        <h1 style={{
+          fontSize: '1.8rem',
+          fontWeight: 300,
+          letterSpacing: '0.25em',
+          textTransform: 'uppercase',
+          color: '#c9a227',
+          textShadow: '0 0 30px rgba(201, 162, 39, 0.3)',
+          margin: 0
+        }}>
+          The Cosmic Egg
+        </h1>
+        <p style={{
+          fontSize: '0.85rem',
+          fontStyle: 'italic',
+          color: '#5a5a6a',
+          marginTop: '0.3rem',
+          letterSpacing: '0.08em'
+        }}>
+          An integrated map of body, mind, and self
+        </p>
+      </header>
+
+      <div style={{
+        display: 'flex',
+        gap: '2rem',
+        alignItems: 'flex-start',
+        justifyContent: 'center',
+        flexWrap: 'wrap',
+        maxWidth: '900px',
+        width: '100%'
+      }}>
+
+        {/* Egg Visualization */}
+        <svg
+          width="400"
+          height="480"
+          viewBox="0 0 400 480"
+          style={{ display: 'block', flexShrink: 0 }}
+        >
+          <defs>
+            <clipPath id="eggClip">
+              <path d={eggPath} />
+            </clipPath>
+            <radialGradient id="selfGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#ffd700" stopOpacity="0.6" />
+              <stop offset="60%" stopColor="#c9a227" stopOpacity="0.15" />
+              <stop offset="100%" stopColor="#c9a227" stopOpacity="0" />
+            </radialGradient>
+            <filter id="glow">
+              <feGaussianBlur stdDeviation="3" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+            <filter id="softGlow">
+              <feGaussianBlur stdDeviation="6" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+
+          {/* Background egg shape */}
+          <path d={eggPath} fill="#0a0a12" stroke="#2a2a3a" strokeWidth="1" />
+
+          {/* Chakra bands — clipped to egg */}
+          <g clipPath="url(#eggClip)">
+            {bands.map((band) => {
+              const isActive = activeChakra === band.id;
+              const bandH = band.yBot - band.yTop;
+              // Full-width rect, clipped by egg
+              return (
+                <g key={band.id}>
+                  <rect
+                    x={0}
+                    y={band.yTop}
+                    width={400}
+                    height={bandH}
+                    fill={band.color}
+                    opacity={isActive ? 0.65 : 0.3}
+                    style={{
+                      cursor: 'pointer',
+                      transition: 'opacity 0.25s ease'
+                    }}
+                    onMouseEnter={() => setActiveChakra(band.id)}
+                    onMouseLeave={() => { if (activeChakra === band.id) setActiveChakra(null); }}
+                    onClick={() => setActiveChakra(activeChakra === band.id ? null : band.id)}
+                  />
+                  {/* Divider line */}
+                  {band.index < bandCount - 1 && (
+                    <line
+                      x1={cx - band.rBot}
+                      y1={band.yBot}
+                      x2={cx + band.rBot}
+                      y2={band.yBot}
+                      stroke="#ffffff"
+                      strokeOpacity="0.06"
+                      strokeWidth="0.5"
+                    />
+                  )}
+                  {/* Label */}
+                  <text
+                    x={cx}
+                    y={band.yMid + 1}
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    fill={isActive ? band.colorLight : '#ffffff'}
+                    fillOpacity={isActive ? 1 : 0.45}
+                    fontSize={isActive ? '13' : '11'}
+                    fontFamily="Cormorant Garamond, Georgia, serif"
+                    fontWeight={isActive ? '500' : '400'}
+                    letterSpacing="0.12em"
+                    style={{
+                      cursor: 'pointer',
+                      transition: 'all 0.25s ease',
+                      pointerEvents: 'none',
+                      textTransform: 'uppercase'
+                    }}
+                  >
+                    {band.name}
+                  </text>
+                  {/* Self-spark on right when active */}
+                  {isActive && (
+                    <text
+                      x={cx + band.rMid - 12}
+                      y={band.yMid + 1}
+                      textAnchor="end"
+                      dominantBaseline="middle"
+                      fill={band.colorLight}
+                      fillOpacity="0.6"
+                      fontSize="9"
+                      fontFamily="Cormorant Garamond, Georgia, serif"
+                      fontStyle="italic"
+                      letterSpacing="0.08em"
+                      style={{ pointerEvents: 'none' }}
+                    >
+                      {band.selfSpark}
+                    </text>
+                  )}
+                </g>
+              );
+            })}
+          </g>
+
+          {/* Egg outline */}
+          <path d={eggPath} fill="none" stroke="#4a4a5a" strokeWidth="1.5" />
+
+          {/* Central axis — subtle vertical line */}
+          <line
+            x1={cx}
+            y1={cy - ry + 20}
+            x2={cx}
+            y2={cy + ry - 20}
+            stroke="#c9a227"
+            strokeOpacity="0.1"
+            strokeWidth="1"
+            strokeDasharray="3 6"
+          />
+
+          {/* Self glow at center */}
+          <circle cx={cx} cy={cy} r="30" fill="url(#selfGlow)" style={{ animation: 'pulse 4s ease-in-out infinite' }} />
+          <circle cx={cx} cy={cy} r="6" fill="#c9a227" filter="url(#softGlow)" opacity="0.8">
+            <animate attributeName="r" values="5;7;5" dur="3s" repeatCount="indefinite" />
+          </circle>
+          <text
+            x={cx}
+            y={cy + 18}
+            textAnchor="middle"
+            fill="#c9a227"
+            fontSize="10"
+            fontFamily="Cormorant Garamond, Georgia, serif"
+            letterSpacing="0.25em"
+            fontWeight="500"
+            fillOpacity="0.7"
+          >
+            SELF
+          </text>
+
+          {/* Interaction hint */}
+          <text
+            x={cx}
+            y={cy + ry + 20}
+            textAnchor="middle"
+            fill="#3a3a4a"
+            fontSize="9"
+            fontFamily="Cormorant Garamond, Georgia, serif"
+            letterSpacing="0.06em"
+          >
+            {activeChakra ? '' : 'Touch a band to explore'}
+          </text>
+        </svg>
+
+        {/* Info Panel */}
+        <div style={{
+          width: '340px',
+          minHeight: '420px',
+          background: 'linear-gradient(135deg, #1a1a2e 0%, #12121f 100%)',
+          border: '1px solid #2a2a3a',
+          borderRadius: '4px',
+          padding: '1.25rem'
+        }}>
+          {activeData ? (
+            <>
+              {/* Header */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                marginBottom: '0.4rem'
+              }}>
+                <div style={{
+                  width: '12px',
+                  height: '12px',
+                  borderRadius: '50%',
+                  background: activeData.color,
+                  boxShadow: `0 0 10px ${activeData.color}`
+                }} />
+                <h2 style={{
+                  fontSize: '1.15rem',
+                  fontWeight: 400,
+                  color: activeData.colorLight,
+                  letterSpacing: '0.06em',
+                  margin: 0
+                }}>
+                  {activeData.name}
+                  <span style={{ fontSize: '0.8rem', color: '#5a5a6a', fontStyle: 'italic', marginLeft: '0.5rem' }}>
+                    {activeData.sanskrit}
+                  </span>
+                </h2>
+              </div>
+
+              <p style={{
+                fontSize: '0.8rem',
+                fontStyle: 'italic',
+                color: '#7a7a8a',
+                marginBottom: '0.75rem',
+                paddingBottom: '0.6rem',
+                borderBottom: '1px solid #2a2a3a'
+              }}>
+                {activeData.domain}
+              </p>
+
+              {/* Band */}
+              <div style={{
+                display: 'inline-block',
+                padding: '0.2rem 0.5rem',
+                background: bandColors[activeData.band].bg,
+                border: `1px solid ${bandColors[activeData.band].border}33`,
+                borderRadius: '2px',
+                marginBottom: '0.75rem',
+                fontSize: '0.6rem',
+                color: bandColors[activeData.band].text,
+                letterSpacing: '0.1em'
+              }}>
+                {bandColors[activeData.band].label}
+              </div>
+
+              {/* Ventral state */}
+              <div style={{ marginBottom: '0.75rem' }}>
+                <h3 style={{
+                  fontSize: '0.6rem',
+                  color: '#4a8a4a',
+                  letterSpacing: '0.1em',
+                  marginBottom: '0.25rem'
+                }}>
+                  ✧ WHEN INTEGRATED
+                </h3>
+                <p style={{ fontSize: '0.8rem', color: '#a8c8a8', margin: 0, lineHeight: 1.4 }}>
+                  {activeData.ventral}
+                </p>
+              </div>
+
+              {/* IFS Triad */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr 1fr',
+                gap: '0.4rem',
+                marginBottom: '0.75rem'
+              }}>
+                <div style={{ background: '#0f0f1a', padding: '0.4rem', borderRadius: '2px', borderLeft: '2px solid #5a5a7a' }}>
+                  <div style={{ fontSize: '0.55rem', color: '#5a5a7a', marginBottom: '0.2rem', letterSpacing: '0.08em' }}>EXILE</div>
+                  <div style={{ fontSize: '0.72rem', color: '#a8a8b8' }}>{activeData.exile}</div>
+                </div>
+                <div style={{ background: '#1a1210', padding: '0.4rem', borderRadius: '2px', borderLeft: '2px solid #a85454' }}>
+                  <div style={{ fontSize: '0.55rem', color: '#a85454', marginBottom: '0.2rem', letterSpacing: '0.08em' }}>MANAGER</div>
+                  <div style={{ fontSize: '0.72rem', color: '#c8a8a8' }}>{activeData.manager}</div>
+                </div>
+                <div style={{ background: '#10121a', padding: '0.4rem', borderRadius: '2px', borderLeft: '2px solid #4a6a8a' }}>
+                  <div style={{ fontSize: '0.55rem', color: '#4a6a8a', marginBottom: '0.2rem', letterSpacing: '0.08em' }}>FIREFIGHTER</div>
+                  <div style={{ fontSize: '0.72rem', color: '#a8b8c8' }}>{activeData.firefighter}</div>
+                </div>
+              </div>
+
+              {/* Neural & Chemistry */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '0.4rem',
+                marginBottom: '0.75rem'
+              }}>
+                <div style={{ background: '#0a0a10', padding: '0.4rem', borderRadius: '2px' }}>
+                  <div style={{ fontSize: '0.55rem', color: '#4a4a5a', marginBottom: '0.2rem', letterSpacing: '0.08em' }}>NEURAL AXIS</div>
+                  <div style={{ fontSize: '0.68rem', color: '#8a8a9a' }}>{activeData.neural}</div>
+                </div>
+                <div style={{ background: '#0a0a10', padding: '0.4rem', borderRadius: '2px' }}>
+                  <div style={{ fontSize: '0.55rem', color: '#4a4a5a', marginBottom: '0.2rem', letterSpacing: '0.08em' }}>CHEMISTRY</div>
+                  <div style={{ fontSize: '0.68rem', color: '#8a8a9a' }}>{activeData.chemistry}</div>
+                </div>
+              </div>
+
+              {/* Integration */}
+              <div style={{
+                background: '#0a120a',
+                padding: '0.5rem 0.6rem',
+                borderLeft: `2px solid ${activeData.color}`,
+                marginBottom: '0.6rem'
+              }}>
+                <div style={{ fontSize: '0.55rem', color: '#4a7a4a', marginBottom: '0.2rem', letterSpacing: '0.08em' }}>
+                  INTEGRATION MARKER
+                </div>
+                <p style={{ fontSize: '0.72rem', color: '#a8c8a8', margin: 0, lineHeight: 1.3 }}>
+                  {activeData.integration}
+                </p>
+              </div>
+
+              {/* Self-spark */}
+              <div style={{
+                background: '#12100a',
+                padding: '0.5rem 0.6rem',
+                borderLeft: '2px solid #c9a227'
+              }}>
+                <div style={{ fontSize: '0.55rem', color: '#8a7a4a', marginBottom: '0.2rem', letterSpacing: '0.08em' }}>
+                  SELF-SPARK
+                </div>
+                <p style={{ fontSize: '0.95rem', color: '#c9a227', margin: 0, fontStyle: 'italic' }}>
+                  {activeData.selfSpark}
+                </p>
+              </div>
+            </>
+          ) : (
+            <div style={{ paddingTop: '0.5rem' }}>
+              <p style={{ fontSize: '0.9rem', fontStyle: 'italic', color: '#5a5a6a', textAlign: 'center', marginBottom: '1.25rem' }}>
+                Select a band to explore
+              </p>
+
+              {/* Legend */}
+              <div style={{ marginBottom: '1.25rem' }}>
+                <h3 style={{ fontSize: '0.65rem', color: '#4a4a5a', letterSpacing: '0.12em', marginBottom: '0.6rem' }}>
+                  THE SEVEN CENTERS
+                </h3>
+                {chakras.map((chakra) => (
+                  <div
+                    key={chakra.id}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      marginBottom: '0.35rem',
+                      cursor: 'pointer',
+                      padding: '0.2rem 0.4rem',
+                      borderRadius: '2px',
+                      background: activeChakra === chakra.id ? '#1a1a2a' : 'transparent',
+                      transition: 'background 0.2s ease'
+                    }}
+                    onMouseEnter={() => setActiveChakra(chakra.id)}
+                    onMouseLeave={() => setActiveChakra(null)}
+                    onClick={() => setActiveChakra(activeChakra === chakra.id ? null : chakra.id)}
+                  >
+                    <div style={{
+                      width: '9px',
+                      height: '9px',
+                      borderRadius: '50%',
+                      background: chakra.color,
+                      boxShadow: activeChakra === chakra.id ? `0 0 6px ${chakra.color}` : 'none',
+                      transition: 'box-shadow 0.2s ease'
+                    }} />
+                    <span style={{ fontSize: '0.78rem', color: '#9a9aaa', flex: 1 }}>
+                      {chakra.name}
+                    </span>
+                    <span style={{ fontSize: '0.68rem', color: '#5a5a6a', fontStyle: 'italic' }}>
+                      {chakra.selfSpark}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Three bands */}
+              <div style={{ display: 'grid', gap: '0.4rem', marginBottom: '1rem' }}>
+                {Object.entries(bandColors).map(([key, val]) => (
+                  <div key={key} style={{ background: val.bg, padding: '0.5rem', borderRadius: '2px', borderLeft: `3px solid ${val.border}` }}>
+                    <div style={{ fontSize: '0.6rem', color: val.text, letterSpacing: '0.1em' }}>{val.label}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Concept */}
+              <div style={{
+                background: '#08080c',
+                padding: '0.75rem',
+                borderRadius: '3px',
+                borderLeft: '2px solid #c9a227'
+              }}>
+                <p style={{ fontSize: '0.75rem', color: '#7a7a6a', margin: 0, lineHeight: 1.5 }}>
+                  <strong style={{ color: '#c9a227' }}>Self</strong> is at the center — the seat of awareness that can witness and relate to all parts with curiosity and compassion.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <p style={{
+        fontSize: '0.55rem',
+        color: '#2a2a3a',
+        textAlign: 'center',
+        marginTop: '1rem',
+        letterSpacing: '0.1em'
+      }}>
+        v0.3 · THE COSMIC EGG · IFS + CHAKRA + POLYVAGAL + NEURAXIS
+      </p>
+    </div>
+  );
+};
+
+export default CosmicEggFlat;
